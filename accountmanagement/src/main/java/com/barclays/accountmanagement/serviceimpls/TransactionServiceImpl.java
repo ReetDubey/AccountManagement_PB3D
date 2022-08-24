@@ -16,20 +16,16 @@ import com.barclays.accountmanagement.entity.Account;
 import com.barclays.accountmanagement.entity.Customer;
 import com.barclays.accountmanagement.entity.Transaction;
 import com.barclays.accountmanagement.repositories.AccountRepo;
-import com.barclays.accountmanagement.repositories.EmailSender;
 import com.barclays.accountmanagement.repositories.TransactionRepo;
 import com.barclays.accountmanagement.services.TransactionService;
-import com.barclays.accountmanagement.utility.LoggingAspect;
 
 import java.util.List;
 
 
 @Component
 public class TransactionServiceImpl implements TransactionService {
-		@Autowired 
-		LoggingAspect logger;
-	@Autowired
-    private EmailSender mail;
+		
+	
 	@Override
 	public String Deposit(long depositID, double amount) {
 	
@@ -51,8 +47,7 @@ public class TransactionServiceImpl implements TransactionService {
 		//transactionRepo.save(transaction);
 		accountRepo.save(depositor);
 		GenerateTransactionRef(transaction,depositor);
-		//mail.sendEmail("jaypalkawale24@gmail.com", "Mail Generated from capstone", "MAil");
-		sendEmail(depositor, transaction);	
+		//sendEmail(depositor, transaction);	
 		return "Transaction successful";
 	}
 
@@ -67,8 +62,8 @@ public class TransactionServiceImpl implements TransactionService {
         Customer customer = account.getCustomer();
         String emailId = customer.getEmail();
         System.out.println(emailId);
-       // message.setFrom("acc.management.system@gmail.com");
-       // message.setTo(emailId);
+        message.setFrom("acc.management.system@gmail.com");
+        message.setTo(emailId);
         
         String firstEncryptedAccountNumber = Long.toString(account.getAccountNumber()).substring(0, 3); 
         String lastEncryptedAccountNumber = Long.toString(account.getAccountNumber()).substring(5, 9);
@@ -86,15 +81,13 @@ public class TransactionServiceImpl implements TransactionService {
 	    	subjectEnd = "has been debited.";
 	    }
 	    
-        String body=new String("Transaction successful! \nTransaction reference number : " + transaction.getTransactionRefNum() +
+        message.setText("Transaction successful! \nTransaction reference number : " + transaction.getTransactionRefNum() +
         		"\nTransaction Date : " + now +
                 "\nTransaction Type : " + transaction.getTransactionType() + 
         		"\nAmount transacted : $" + transaction.getTransactionAmount());
-        String Subject=new String(subjectStart + " " + encryptedAccountNumber + " " +subjectEnd);
+        message.setSubject(subjectStart + " " + encryptedAccountNumber + " " +subjectEnd);
 
-        //mailSender.send(message);
-        mail.sendEmail(emailId, Subject, body);
-        
+        mailSender.send(message);
         System.out.println("Mail sent...");
     }
 //Withdraw Module		
@@ -117,7 +110,6 @@ public class TransactionServiceImpl implements TransactionService {
 			Account account = accountRepo.getReferenceById(accountNumber);
 			
 			if (! (checkLimit10000(accountNumber, amountToWithdraw)) ) {
-				LoggingAspect.LOGGER.info("Max WithDraw Limit Exceeded");
 				throw new MaxWithdrawalLimitExceededException();
 			}
 			
@@ -133,7 +125,7 @@ public class TransactionServiceImpl implements TransactionService {
 			
 			try {
 				GenerateTransactionRef(transaction, account);
-				sendEmail(account, transaction);
+				//sendEmail(account, transaction);
 			}catch( Exception e ){
 				// catch error
 				System.out.println("Error Sending Email: " + e.getMessage());
@@ -295,7 +287,7 @@ public class TransactionServiceImpl implements TransactionService {
 	}
 	void saveAndNotify(Account account,Transaction transaction) {
 		accountRepo.save(account);
-		//sendEmail(account, transaction);
+		sendEmail(account, transaction);
 	}
 
 

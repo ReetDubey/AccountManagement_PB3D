@@ -8,11 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import com.barclays.accountmanagement.entity.Account;
 
-/**
- * 
- * @author Nishad
- *
- */
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
 	
